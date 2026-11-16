@@ -30,6 +30,8 @@ import com.velocitypowered.proxy.util.ClosestLocaleMatcher;
 import java.net.InetSocketAddress;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.OptionalInt;
+
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.kyori.adventure.translation.GlobalTranslator;
@@ -67,6 +69,11 @@ public final class InitialInboundConnection implements VelocityInboundConnection
   @Override
   public Optional<String> getRawVirtualHost() {
     return Optional.of(handshake.getServerAddress());
+  }
+
+  @Override
+  public OptionalInt getRawProtocolVersion() {
+    return OptionalInt.of(handshake.getRawProtocolVersion());
   }
 
   @Override

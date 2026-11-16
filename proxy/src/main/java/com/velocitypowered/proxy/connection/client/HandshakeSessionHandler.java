@@ -44,6 +44,7 @@ import io.netty.util.concurrent.ScheduledFuture;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.concurrent.TimeUnit;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -263,6 +264,11 @@ public class HandshakeSessionHandler implements MinecraftSessionHandler {
     @Override
     public Optional<String> getRawVirtualHost() {
       return getVirtualHost().map(InetSocketAddress::getHostName);
+    }
+
+    @Override
+    public OptionalInt getRawProtocolVersion() {
+      return OptionalInt.empty();
     }
 
     @Override

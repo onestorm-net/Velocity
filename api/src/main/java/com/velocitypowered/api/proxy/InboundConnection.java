@@ -12,6 +12,7 @@ import com.velocitypowered.api.network.ProtocolState;
 import com.velocitypowered.api.network.ProtocolVersion;
 import java.net.InetSocketAddress;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.UUID;
 
 /**
@@ -41,6 +42,17 @@ public interface InboundConnection {
    * @return the raw hostname from the client
    */
   Optional<String> getRawVirtualHost();
+
+  /**
+   * Returns the protocol version number exactly as the client sent it in the handshake,
+   * before it was mapped to a {@link ProtocolVersion}.
+   *
+   * <p>Unlike {@link #getProtocolVersion()}, this value is not validated: it may be negative
+   * (query tools conventionally send {@code -1}), or a version this proxy does not support.
+   *
+   * @return the raw protocol version number, or empty for legacy pings, which do not include one
+   */
+  OptionalInt getRawProtocolVersion();
 
   /**
    * Determine whether or not the player remains online.

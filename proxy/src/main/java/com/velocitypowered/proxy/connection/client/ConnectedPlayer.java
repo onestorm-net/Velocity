@@ -112,6 +112,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -386,6 +387,12 @@ public class ConnectedPlayer implements MinecraftConnectionAssociation, Player, 
   @Override
   public Optional<String> getRawVirtualHost() {
     return Optional.ofNullable(rawVirtualHost);
+  }
+
+  @Override
+  public OptionalInt getRawProtocolVersion() {
+    // only valid protocol versions will reach this class
+    return OptionalInt.of(getProtocolVersion().getProtocol());
   }
 
   void setPermissionFunction(PermissionFunction permissionFunction) {
