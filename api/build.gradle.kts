@@ -2,6 +2,7 @@ plugins {
     `java-library`
     `maven-publish`
     id("velocity-publish")
+    id("onestorm-publish")
 }
 
 java {
