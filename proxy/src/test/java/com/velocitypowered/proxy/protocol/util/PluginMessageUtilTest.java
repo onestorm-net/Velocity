@@ -18,7 +18,14 @@
 package com.velocitypowered.proxy.protocol.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.velocitypowered.api.network.ProtocolVersion;
+import com.velocitypowered.proxy.protocol.ProtocolUtils;
+import com.velocitypowered.proxy.protocol.packet.PluginMessagePacket;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
 class PluginMessageUtilTest {
@@ -49,5 +56,68 @@ class PluginMessageUtilTest {
         .transformLegacyToModernChannel("Example"));
     assertEquals("legacy:pskeepalive", PluginMessageUtil
         .transformLegacyToModernChannel("PS|KeepAlive"));
+  }
+
+  private static PluginMessagePacket brandPacket(String channel, String brand) {
+    ByteBuf buf = Unpooled.buffer();
+    ProtocolUtils.writeString(buf, brand);
+    return new PluginMessagePacket(channel, buf);
+  }
+
+  private static String rewrite(String backendBrand, ProtocolVersion version, String template) {
+    PluginMessagePacket original = brandPacket("minecraft:brand", backendBrand);
+    PluginMessagePacket rewritten = PluginMessageUtil.rewriteMinecraftBrand(
+        original, version, template);
+    try {
+      return ProtocolUtils.readString(rewritten.content().slice());
+    } finally {
+      original.release();
+      rewritten.release();
+    }
+  }
+
+  @Test
+  void rewriteMinecraftBrandReplacesPlaceholder() {
+    assertEquals("Paper (Velocity)", rewrite("Paper",
+        ProtocolVersion.MAXIMUM_VERSION, "%backend_brand% (Velocity)"));
+  }
+
+  @Test
+  void rewriteMinecraftBrandReplacesEveryPlaceholder() {
+    assertEquals("Paper / Paper", rewrite("Paper",
+        ProtocolVersion.MAXIMUM_VERSION, "%backend_brand% / %backend_brand%"));
+  }
+
+  @Test
+  void rewriteMinecraftBrandUsesTemplateWithoutPlaceholderAsIs() {
+    assertEquals("My Network", rewrite("Paper",
+        ProtocolVersion.MAXIMUM_VERSION, "My Network"));
+  }
+
+  @Test
+  void rewriteMinecraftBrandWritesLegacyFormatFor17Clients() {
+    PluginMessagePacket original = brandPacket("MC|Brand", "vanilla");
+    PluginMessagePacket rewritten = PluginMessageUtil.rewriteMinecraftBrand(
+        original, ProtocolVersion.MINECRAFT_1_7_2, "%backend_brand% (Velocity)");
+    try {
+      assertEquals("MC|Brand", rewritten.getChannel());
+      // 1.7 brand messages have no length prefix
+      assertEquals("vanilla (Velocity)",
+          rewritten.content().toString(StandardCharsets.UTF_8));
+    } finally {
+      original.release();
+      rewritten.release();
+    }
+  }
+
+  @Test
+  void rewriteMinecraftBrandRejectsNonBrandMessages() {
+    PluginMessagePacket other = brandPacket("velocity:test", "Paper");
+    try {
+      assertThrows(IllegalArgumentException.class, () -> PluginMessageUtil
+          .rewriteMinecraftBrand(other, ProtocolVersion.MAXIMUM_VERSION, "%backend_brand%"));
+    } finally {
+      other.release();
+    }
   }
 }

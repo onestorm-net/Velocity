@@ -34,6 +34,8 @@ import com.velocitypowered.proxy.config.migration.MotdMigration;
 import com.velocitypowered.proxy.config.migration.PacketLimiterMigration;
 import com.velocitypowered.proxy.config.migration.PingPassthroughMigration;
 import com.velocitypowered.proxy.config.migration.TransferIntegrationMigration;
+import com.velocitypowered.proxy.config.migration.onestorm.BrandTemplateMigration;
+import com.velocitypowered.proxy.config.migration.onestorm.StormConfigurationMigration;
 import com.velocitypowered.proxy.util.AddressUtil;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
@@ -99,6 +101,8 @@ public class VelocityConfiguration implements ProxyConfig {
   private boolean forceKeyAuthentication = true; // Added in 1.19
   @Expose
   private PacketLimiterConfig packetLimiterConfig = PacketLimiterConfig.DEFAULT;
+  @Expose
+  private String brandTemplate = "%backend_brand% (Velocity)";
 
   private VelocityConfiguration(Servers servers, ForcedHosts forcedHosts, Advanced advanced,
       Query query, Metrics metrics) {
@@ -115,7 +119,9 @@ public class VelocityConfiguration implements ProxyConfig {
       boolean onlineModeKickExistingPlayers, PingPassthroughMode pingPassthrough,
       boolean samplePlayersInPing, boolean enablePlayerAddressLogging, Servers servers,
       ForcedHosts forcedHosts, Advanced advanced, Query query, Metrics metrics,
-      boolean forceKeyAuthentication, PacketLimiterConfig packetLimiterConfig) {
+      boolean forceKeyAuthentication, PacketLimiterConfig packetLimiterConfig,
+      String brandTemplate
+  ) {
     this.bind = bind;
     this.motd = motd;
     this.showMaxPlayers = showMaxPlayers;
@@ -135,6 +141,7 @@ public class VelocityConfiguration implements ProxyConfig {
     this.metrics = metrics;
     this.forceKeyAuthentication = forceKeyAuthentication;
     this.packetLimiterConfig = packetLimiterConfig;
+    this.brandTemplate = brandTemplate;
   }
 
   /**
@@ -457,6 +464,10 @@ public class VelocityConfiguration implements ProxyConfig {
     return packetLimiterConfig;
   }
 
+  public String getBrandTemplate() {
+    return brandTemplate;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
@@ -475,6 +486,7 @@ public class VelocityConfiguration implements ProxyConfig {
         .add("enablePlayerAddressLogging", enablePlayerAddressLogging)
         .add("forceKeyAuthentication", forceKeyAuthentication)
         .add("packetLimiterConfig", packetLimiterConfig)
+        .add("brandTemplate", brandTemplate)
         .toString();
   }
 
@@ -520,6 +532,16 @@ public class VelocityConfiguration implements ProxyConfig {
       };
 
       for (final ConfigurationMigration migration : migrations) {
+        if (migration.shouldMigrate(config)) {
+          migration.migrate(config, logger);
+        }
+      }
+
+      final StormConfigurationMigration[] stormMigrations = {
+          new BrandTemplateMigration(),
+      };
+
+      for (final StormConfigurationMigration migration : stormMigrations) {
         if (migration.shouldMigrate(config)) {
           migration.migrate(config, logger);
         }
@@ -572,6 +594,7 @@ public class VelocityConfiguration implements ProxyConfig {
       final boolean enablePlayerAddressLogging = config.getOrElse(
               "enable-player-address-logging", true);
       final PacketLimiterConfig packetLimiterConfig = PacketLimiterConfig.fromConfig(config.get("packet-limiter"));
+      final String brandTemplate = config.getOrElse("brand-template", "%backend_brand% (Velocity)");
 
       // Throw an exception if the forwarding-secret file is empty and the proxy is using a
       // forwarding mode that requires it.
@@ -600,7 +623,8 @@ public class VelocityConfiguration implements ProxyConfig {
               new Query(queryConfig),
               new Metrics(metricsConfig),
               forceKeyAuthentication,
-              packetLimiterConfig
+              packetLimiterConfig,
+              brandTemplate
       );
     }
   }

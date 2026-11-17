@@ -1,6 +1,9 @@
 # Config version. Do not change this
 config-version = "2.9"
 
+# Fork config version. Do not change this
+onestorm-config-version = 1
+
 # What port should the proxy be bound to? By default, we'll bind to all addresses on port 25565.
 bind = "0.0.0.0:25565"
 
@@ -58,6 +61,10 @@ sample-players-in-ping = false
 
 # If not enabled (default is true) player IP addresses will be replaced by <ip address withheld> in logs
 enable-player-address-logging = true
+
+# The brand shown to clients in the F3 debug screen.
+# Use %backend_brand% to insert the brand sent by the backend server.
+brand-template = "%backend_brand% (Velocity)"
 
 [ping-passthrough]
 # Should Velocity pass the version number from the backend server when responding to server list ping requests?

@@ -197,6 +197,37 @@ public final class PluginMessageUtil {
   }
 
   /**
+   * Rewrites a {@code minecraft:brand} plugin message using the given template.
+   *
+   * <p>The template supports the {@code %backend_brand%} placeholder, which is replaced
+   * with the brand sent by the backend server. All other text is kept as-is.
+   *
+   * @param message the brand plugin message from the backend
+   * @param protocolVersion the protocol version of the client receiving the message
+   * @param brandTemplate the template for the rewritten brand
+   * @return a new plugin message containing the rewritten brand
+   * @throws IllegalArgumentException if {@code message} is not a brand plugin message
+   */
+  public static PluginMessagePacket rewriteMinecraftBrand(PluginMessagePacket message,
+                                                          ProtocolVersion protocolVersion,
+                                                          String brandTemplate) {
+    checkNotNull(message, "message");
+    checkNotNull(brandTemplate, "brandTemplate");
+    checkArgument(isMcBrand(message), "message is not a brand plugin message");
+
+    String rewrittenBrand = brandTemplate.replace("%backend_brand%", readBrandMessage(message.content()));
+
+    ByteBuf rewrittenBuf = Unpooled.buffer();
+    if (protocolVersion.noLessThan(ProtocolVersion.MINECRAFT_1_8)) {
+      ProtocolUtils.writeString(rewrittenBuf, rewrittenBrand);
+    } else {
+      rewrittenBuf.writeCharSequence(rewrittenBrand, StandardCharsets.UTF_8);
+    }
+
+    return new PluginMessagePacket(message.getChannel(), rewrittenBuf);
+  }
+
+  /**
    * Some clients (mostly poorly-implemented bots) do not send validly-formed brand messages. In
    * order to accommodate their broken behavior, we'll first try to read in the 1.8 format, and if
    * that fails, treat it as a 1.7-format message (which has no prefixed length). (The message
