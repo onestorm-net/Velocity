@@ -32,6 +32,7 @@ import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.net.InetSocketAddress;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -76,6 +77,11 @@ public class LoginInboundConnection implements LoginPhaseConnection, KeyIdentifi
   @Override
   public Optional<String> getRawVirtualHost() {
     return delegate.getRawVirtualHost();
+  }
+
+  @Override
+  public OptionalInt getRawProtocolVersion() {
+    return delegate.getRawProtocolVersion();
   }
 
   @Override

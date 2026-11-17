@@ -31,7 +31,6 @@ import java.net.InetSocketAddress;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.OptionalInt;
-
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.kyori.adventure.translation.GlobalTranslator;
